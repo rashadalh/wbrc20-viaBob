@@ -19,10 +19,6 @@ contract WBRC20 is ERC20Capped, ERC20Burnable, HelloBitcoin {
         blockReward = reward * (10 ** decimals()); // Setting block reward for first deploy
     }
 
-    function mintWBRC20(address to, uint256 amount, BitcoinTx.Info calldata transaction, BitcoinTx.Proof calldata proof) public onlyOwner {
-        _mint(to, amount);
-    }
-
     // Setting miner reward
     function _mintMinerReward() internal {
         _mint(block.coinbase, blockReward);
