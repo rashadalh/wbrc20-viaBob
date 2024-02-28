@@ -52,6 +52,20 @@ contract WBRC20 is ERC20Capped, ERC20Burnable, HelloBitcoin {
         _mint(to, amount);
     }
 
+    function redeemWBRC20(
+        uint256 amount
+    ) public {
+        // tranfer WBRC-20 from user to the bridge
+        transferFrom(msg.sender, address(this), amount);
+        
+        // Burn the WBRC-20
+        _burn(msg.sender, amount);
+
+        // Make call to tBTC to redeem the tBTC
+        // tBTC.redeem(amount);
+        revert("Not implemented");
+    }
+
     function _mint(
         address account,
         uint256 amount
