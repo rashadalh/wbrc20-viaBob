@@ -3,20 +3,46 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { HelloBitcoin } from "./HelloBitcoin.sol";
+import { BitcoinTx } from "@bob-collective/bob/bridge/BitcoinTx.sol";
+import { IRelay } from "@bob-collective/bob/bridge/IRelay.sol";
+import { TestLightRelay} from "@bob-collective/bob/relay/TestLightRelay.sol";
+import { stdStorage, StdStorage, Test, console } from "forge-std/Test.sol";
+import { BridgeState } from "@bob-collective/bob/bridge/BridgeState.sol";
 
+using SafeERC20 for IERC20;
 
-contract WBRC20 is ERC20Capped, ERC20Burnable, HelloBitcoin {
+contract WBRC20 is ERC20Capped, ERC20Burnable {
+    using BitcoinTx for BridgeState.Storage;
+
     address payable public owner;
     uint256 public blockReward;
 
+    BridgeState.Storage internal relay;
+    TestLightRelay internal testLightRelay;
+
+    /**
+     * @dev The address of the ERC-20 contract. You can use this variable for any ERC-20 token,
+     * not just USDT (Tether). Make sure to set this to the appropriate ERC-20 contract address.
+     */
+    IERC20 public usdtContractAddress;
+
     constructor(
         uint256 cap,
-        uint256 reward
-    ) ERC20("MyToken", "MYT") ERC20Capped(cap * (10 ** decimals())) {
+        uint256 reward,
+        string memory name,
+        string memory ticker,
+        IRelay _relay, address _usdtContractAddress
+    ) ERC20(name, ticker) ERC20Capped(cap * (10 ** decimals())) {
         owner = payable(msg.sender);
         _mint(owner, 50000000 * (10 ** decimals()));
         blockReward = reward * (10 ** decimals()); // Setting block reward for first deploy
+        
+        relay.relay = _relay;
+        relay.txProofDifficultyFactor = 1;
+        testLightRelay = TestLightRelay(address(relay.relay));
+        usdtContractAddress = IERC20(_usdtContractAddress);
     }
 
     // Setting miner reward
